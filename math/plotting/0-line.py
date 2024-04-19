@@ -14,3 +14,4 @@ def line():
 
     # Show the plot
     plt.show()
+    
