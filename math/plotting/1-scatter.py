@@ -1,10 +1,11 @@
-hbt-ml@Holberton-ML:~$ cat 1-scatter.py
 #!/usr/bin/env python3
+"""1. Scatter"""
 import numpy as np
 import matplotlib.pyplot as plt
 
-def scatter():
 
+def scatter():
+    """plot a scatter plot"""
     mean = [69, 0]
     cov = [[15, 8], [8, 15]]
     np.random.seed(5)
@@ -17,4 +18,3 @@ def scatter():
     plt.ylabel('Weight (lbs)')
     plt.scatter(x, y, color='magenta')
     plt.show()
-    
