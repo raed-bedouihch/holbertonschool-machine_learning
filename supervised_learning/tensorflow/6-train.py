@@ -14,3 +14,35 @@ create_train_op = __import__('5-create_train_op').create_train_op
 
 def train(X_train, Y_train, X_valid, Y_valid, layer_sizes, activations,
           alpha, iterations, save_path="/tmp/model.ckpt"):
+    """ builds, trains, and saves a neural network classifier
+    """
+    tf.disable_eager_execution()
+    x, y = create_placeholders(X_train.shape[1], Y_train.shape[1])
+    y_pred = forward_prop(x, layer_sizes, activations)
+    accuracy = calculate_accuracy(y, y_pred)
+    loss = calculate_loss(y, y_pred)
+    train_op = create_train_op(loss, alpha)
+    tf.add_to_collection('x', x)
+    tf.add_to_collection('y', y)
+    tf.add_to_collection('y_pred', y_pred)
+    tf.add_to_collection('accuracy', accuracy)
+    tf.add_to_collection('loss', loss)
+    tf.add_to_collection('train_op', train_op)
+    init = tf.global_variables_initializer()
+    saver = tf.train.Saver()
+    with tf.Session() as sess:
+        sess.run(init)
+        for step in range(iterations + 1):
+            cost_t, acc_t = sess.run([loss, accuracy],
+                                     feed_dict={x: X_train, y: Y_train})
+            cost_v, acc_v = sess.run([loss, accuracy],
+                                     feed_dict={x: X_valid, y: Y_valid})
+            if step % 100 == 0 or step == iterations:
+                print("After {} iterations:".format(step))
+                print("\tTraining Cost: {}".format(cost_t))
+                print("\tTraining Accuracy: {}".format(acc_t))
+                print("\tValidation Cost: {}".format(cost_v))
+                print("\tValidation Accuracy: {}".format(acc_v))
+            if step < iterations:
+                sess.run(train_op, feed_dict={x: X_train, y: Y_train})
+        return saver.save(sess, save_path)
