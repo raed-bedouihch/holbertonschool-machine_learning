@@ -4,7 +4,7 @@ building the core block of the
 residual neural network(projection not residual)
 """
 
-import tensorflow.keras as K
+import tensorflow as K
 
 
 def projection_block(A_prev, filters, s=2):
