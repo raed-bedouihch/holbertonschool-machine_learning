@@ -1,18 +1,13 @@
 #!/usr/bin/env python3
-"""
-This is our main poisson class
-"""
+""" 2. Poisson CDF """
 
 
-class Poisson:
-    """
-    creating the class to work on poisson distribution
-    """
+class Poisson():
+    """represents a poisson distribution"""
+
     def __init__(self, data=None, lambtha=1.):
-        """
-        init function to check values and calculate a reasonable value for
-        the poisson rate
-        """
+        """class constructor"""
+
         if data is None:
             if lambtha <= 0:
                 raise ValueError("lambtha must be a positive value")
@@ -20,39 +15,38 @@ class Poisson:
         else:
             if not isinstance(data, list):
                 raise TypeError("data must be a list")
-            if len(data) < 2:
+            if len(data) <= 1:
                 raise ValueError("data must contain multiple values")
-            self.lambtha = float(sum(data) / len(data))
+            self.lambtha = float(sum(data)) / len(data)
 
     def pmf(self, k):
-        """
-        pmf function to calculate the probility mass function
-        of a certain success k
-        exp: telling how much in the intervale of lambtha can the k
-        event occur
-        """
-        k = int(k)
+        """calculates the value of the PMF for a given number of “successes”"""
+
+        e = 2.7182818285
         if k < 0:
             return 0
-        return((2.7182818285 ** -self.lambtha * self.lambtha ** k)
-               / factorial(k))
+
+        if type(k) is not int:
+            k = int(k)
+
+        def factorial(n):
+            if n == 0:
+                return 1
+            else:
+                return n * factorial(n - 1)
+
+        return ((self.lambtha ** k) * (1 / (e ** self.lambtha))) / factorial(k)
 
     def cdf(self, k):
-        """
-        cdf function to give the pourcentile of
-        an event to score less than that
-        """
-        k = int(k)
+        """Calculates the value of the CDF for a given number of “successes”"""
+
+        if type(k) is not int:
+            k = int(k)
+
         if k < 0:
             return 0
-        return self.pmf(k) + self.cdf(k - 1)
-
-
-def factorial(n):
-    """
-        needed to calculate the factorial for the pmf
-        equation
-    """
-    if n == 0:
-        return(1)
-    return(n * factorial(n - 1))
+        else:
+            res = 0
+            for i in range(k + 1):
+                res += self.pmf(i)
+            return res
