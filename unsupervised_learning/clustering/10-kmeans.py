@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
-""" 10. Hello, sklearn! """
+"""
+K-means implementation
+"""
 import sklearn.cluster
 
 
 def kmeans(X, k):
-    """performs K-means on a dataset"""
-    kmeans_ = sklearn.cluster.KMeans(n_clusters=k)
-    kmeans_.fit(X)
-    C = kmeans_.cluster_centers_
-    clss = kmeans_.labels_
-
+    """
+    Using sklearn to perform the
+    already implemented kmeans
+    algorithm
+    """
+    kmeans = sklearn.cluster.KMeans(n_clusters=k).fit(X)
+    C = kmeans.cluster_centers_
+    clss = kmeans.labels_
     return C, clss
