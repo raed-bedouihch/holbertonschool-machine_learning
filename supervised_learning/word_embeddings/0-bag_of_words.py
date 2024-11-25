@@ -1,29 +1,26 @@
 #!/usr/bin/env python3
-"""woord of bag"""
-
+"""a function that creates a bag of words embedding matrix"""
 import numpy as np
 import re
 
 
 def bag_of_words(sentences, vocab=None):
-    """Creates a bag of words embedding matrix"""
-    def clean_sentence(sentence):
-        """Clean sentence before embedding"""
-        return re.sub(r"\b\w{1}\b", "", re.sub(
-            r"[^a-zA-Z0-9\s]", " ", sentence.lower())).split()
-
+    """Returns: embeddings, features"""
+    tokens = []
+    for sentence in sentences:
+        cleaned_sentence = re.sub(r"'s\b", '', sentence.lower())
+        words = re.findall(r'\b\w+\b', cleaned_sentence)
+        tokens.append(words)
     if vocab is None:
-        vocab = sorted(
-            set(
-                word for sentence in sentences for word
-                in clean_sentence(sentence)))
-
-    embeddings = np.zeros((len(sentences), len(vocab)))
-
-    for i, sentence in enumerate(sentences):
-        cleaned_sentence = clean_sentence(sentence)
-        for word in cleaned_sentence:
+        vocab = set()
+        for sentence in tokens:
+            for word in sentence:
+                vocab.add(word)
+        vocab = sorted(vocab)
+    vocab = np.array(vocab)
+    embeddings = np.zeros((len(sentences), len(vocab)), dtype=int)
+    for i, sentence in enumerate(tokens):
+        for word in sentence:
             if word in vocab:
-                embeddings[i, vocab.index(word)] += 1
-
-    return embeddings.astype(int), vocab
+                embeddings[i][np.where(vocab == word)[0][0]] += 1
+    return embeddings, vocab
