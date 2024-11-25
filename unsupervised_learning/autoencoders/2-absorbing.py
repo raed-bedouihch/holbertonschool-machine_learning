@@ -1,20 +1,71 @@
 #!/usr/bin/env python3
-"""a function that determines if a markov chain is absorbing"""
-import numpy as np
+"""A function that creates a convolutional autoencoder"""
+import tensorflow.keras as keras
 
 
-def absorbing(P):
-    """Returns: True if it is absorbing, or False on failure"""
-    if not isinstance(
-            P,
-            np.ndarray) or P.ndim != 2 or P.shape[0] != P.shape[1]:
-        return False
-    n = P.shape[0]
-    absorbing_states = np.all(P == np.eye(n), axis=1)
-    if not np.any(absorbing_states):
-        return False
-    non_absorbing = P[~absorbing_states][:, ~absorbing_states]
-    identity_mat = np.eye(non_absorbing.shape[0])
-    diff_mat = identity_mat - non_absorbing
-    det = np.linalg.det(diff_mat)
-    return det != 0
+def autoencoder(input_dims, filters, latent_dims):
+    """
+    Creates a convolutional autoencoder.
+
+    Args:
+        input_dims (tuple): Dimensions of the model input.
+        filters (list): List containing the number of filters for each
+        convolutional layer in the encoder.
+        latent_dims (tuple): Dimensions of the latent space representation.
+
+    Returns:
+        tuple: encoder, decoder, autoencoder models.
+    """
+    """Define the input layer with the specified input dimensions"""
+    input_lay = keras.Input(shape=input_dims)
+    x = input_lay
+
+    """Build the encoder"""
+    for filter in filters:
+        x = keras.layers.Conv2D(
+            filters=filter, kernel_size=(
+                3, 3), padding='same', activation='relu')(x)
+        x = keras.layers.MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+
+    """Output of the encoder"""
+    encoder_out = x
+    encoder = keras.models.Model(input_lay, encoder_out, name='encoder')
+
+    """
+    Define the input for the decoder with
+    the shape of the encoder's output
+    """
+    decoder_inp = keras.layers.Input(shape=encoder_out.shape[1:])
+    x = decoder_inp
+
+    """Build the decoder"""
+    for i, filter in enumerate(reversed(filters)):
+        if i == len(filters) - 1:
+            x = keras.layers.Conv2D(
+                filters=filter, kernel_size=(
+                    3, 3), padding='valid', activation='relu')(x)
+        else:
+            x = keras.layers.Conv2D(
+                filters=filter, kernel_size=(
+                    3, 3), padding='same', activation='relu')(x)
+        x = keras.layers.UpSampling2D(size=(2, 2))(x)
+
+    """Final convolutional layer to match the input dimensions"""
+    x = keras.layers.Conv2D(
+        filters=input_dims[-1], kernel_size=(3, 3),
+        padding='same', activation='sigmoid')(x)
+
+    """Output of the decoder"""
+    decoder_output = x
+    decoder = keras.models.Model(decoder_inp, decoder_output, name='decoder')
+
+    """Combine the encoder and decoder into the autoencoder model"""
+    autoencoder = keras.models.Model(
+        inputs=input_lay,
+        outputs=decoder(encoder(input_lay)),
+        name='autoencoder')
+
+    """Compile the autoencoder model"""
+    autoencoder.compile(optimizer='adam', loss="binary_crossentropy")
+
+    return encoder, decoder, autoencoder
