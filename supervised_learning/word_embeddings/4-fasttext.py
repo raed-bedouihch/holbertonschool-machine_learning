@@ -1,39 +1,25 @@
 #!/usr/bin/env python3
-"""fasttext model"""
-
-import numpy as np
-from gensim.models import FastText
-from gensim.test.utils import common_texts
+"""a function that creates , builds and trains a gensim fastText model"""
+import gensim
 
 
-def fasttext_model(
+def fasttext_model(sentences, vector_size=100, min_count=5, negative=5,
+                   window=5, cbow=True, epochs=5, seed=0, workers=1):
+    """Returns: the trained model"""
+    sg = 1 if not cbow else 0
+    model = gensim.models.FastText(
         sentences,
-        size=100,
-        min_count=5,
-        negative=5,
-        window=5,
-        cbow=True,
-        iterations=5,
-        seed=0,
-        workers=1):
-    """
-    Train a FastText model on the given sentences.
-
-    Returns:
-        FastText: The trained FastText model.
-    """
-    sg = 0 if cbow else 1
-    model = FastText(
-        vector_size=size,
-        window=window,
+        vector_size=vector_size,
         min_count=min_count,
-        sg=sg,
-        seed=seed,
+        window=window,
         negative=negative,
+        sg=sg,
+        epochs=epochs,
+        seed=seed,
         workers=workers)
-    model.build_vocab(corpus_iterable=sentences)
+    model.build_vocab(sentences)
     model.train(
-        corpus_iterable=sentences,
-        total_examples=len(sentences),
-        epochs=iterations)
+        sentences,
+        total_examples=model.corpus_count,
+        epochs=model.epochs)
     return model
