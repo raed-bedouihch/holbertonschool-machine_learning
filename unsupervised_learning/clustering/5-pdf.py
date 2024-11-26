@@ -1,36 +1,30 @@
 #!/usr/bin/env python3
-""" 5. PDF """
 
+"""
+initializes variables for a Gaussian mixture model
+"""
 
 import numpy as np
 
 
 def pdf(X, m, S):
-    """ calculates the probability density function of a Gaussian distribution:
     """
-
-    if type(X) is not np.ndarray or X.ndim != 2:
+    function that calculates the probability density
+    function of a Gaussian distribution
+    """
+    if not isinstance(X, np.ndarray) or len(X.shape) != 2:
         return None
-    if type(m) is not np.ndarray or m.shape[0] != X.shape[1]:
+    n, d = X.shape
+    if not isinstance(m, np.ndarray) or m.shape != (d,):
         return None
-    if type(S) is not np.ndarray or S.ndim != 2:
+    if not isinstance(S, np.ndarray) or S.shape != (d, d):
         return None
-    if S.shape[0] != S.shape[1] or S.shape[0] != X.shape[1]:
-        return None
-
-    D = m.shape[0]
-
-    Px = (2*np.pi)**(D/2)
-    Px = 1 / (Px * (np.linalg.det(S)**(1/2)))
-    covI = np.linalg.inv(S)
-    x_mu = X - m.reshape(D, 1).T
-    dot = np.dot(x_mu, covI)
-    print(covI)
-
-    dot = (dot * x_mu).sum(axis=1)
-
-    pdv = Px*np.exp((-1/2)*dot)
-
-    pdv[pdv < 1e-300] = 1e-300
-
-    return pdv
+    diff = X - m
+    covariance_inv = np.linalg.inv(S)
+    covariance_det = np.linalg.det(S)
+    exp_component = np.einsum('ij,jk,ik->i', diff, covariance_inv, diff)
+    exp_component = -0.5 * exp_component
+    num = np.exp(exp_component)
+    denom = np.sqrt(((2 * np.pi) ** d) * covariance_det)
+    p = num / denom
+    return np.maximum(p, 1e-300)
