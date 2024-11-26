@@ -1,45 +1,35 @@
 #!/usr/bin/env python3
-""" 3. Optimize k """
+"""a function that tests for the optimum number of clusters by variance"""
 import numpy as np
 kmeans = __import__('1-kmeans').kmeans
 variance = __import__('2-variance').variance
 
 
 def optimum_k(X, kmin=1, kmax=None, iterations=1000):
-    """ tests for the optimum number of clusters by variance """
-
-    if not isinstance(X, np.ndarray) or len(X.shape) != 2:
+    """results, d_vars, or None, None on failure"""
+    if not isinstance(X, np.ndarray) or X.ndim != 2:
+        return None, None
+    if not isinstance(kmin, int) or kmin <= 0:
+        return None, None
+    if not isinstance(kmax, int) or kmax < kmin:
         return None, None
     if not isinstance(iterations, int) or iterations <= 0:
         return None, None
-    if not isinstance(kmin, int) or kmin < 1:
+    if kmax <= kmin:
         return None, None
-    if kmax is not None and (not isinstance(kmax, int) or kmax < 1):
-        return None, None
-    if kmax is not None and kmin >= kmax:
-        return None, None
-
-    n, d = X.shape
     if kmax is None:
-        kmax = n
-
-    results = list()
-    d_vars = list()
-
+        max_clu = X.shape[0]
+    else:
+        max_clu = kmax
+    results = []
+    d_vars = []
     C, clss = kmeans(X, kmin, iterations)
-    if C is None or clss is None:
-        return None, None
-
+    var = variance(X, C)
     results.append((C, clss))
-    small_var = variance(X, C)
-    d_vars.append(0.0)
-
-    for k in range(kmin + 1, kmax + 1):
+    for k in range(kmin + 1, max_clu + 1):
         C, clss = kmeans(X, k, iterations)
-        if C is None or clss is None:
-            return None, None
-        current_var = variance(X, C)
-        d_vars.append(small_var - current_var)
+        curr_var = variance(X, C)
         results.append((C, clss))
-
+        d_vars.append(var - curr_var)
+    d_vars.insert(0, 0.0)
     return results, d_vars
