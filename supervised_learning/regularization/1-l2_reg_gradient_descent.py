@@ -1,29 +1,29 @@
 #!/usr/bin/env python3
-"""
-calculating the l2 weight regulization
-"""
-
+"""write a function that updates the weights and biases
+of a neural network using gradient descent
+with L2 regularization"""
 import numpy as np
 
 
 def l2_reg_gradient_descent(Y, weights, cache, alpha, lambtha, L):
-    """
-    regulizing the weights of
-    a certain neural network to avoid
-    overfitting by adding an l2 regularization term
-    """
+    """Returns: the updated weights and
+    biases of a neural network"""
+
+    A_prev = cache['A0']
     m = Y.shape[1]
-    for i in range(1, L + 1):
-        W_key = 'W' + str(i)
-        b_key = 'b' + str(i)
-        A_key = 'A' + str(i)
-        A_prev_key = 'A' + str(i - 1)
-        diff = cache[A_key] - Y
-        if i == L:
-            dW = np.dot(diff, cache[A_prev_key].T) / m
+    for lay in range(L, 0, -1):
+        A = cache['A' + str(lay)]
+        if lay == L:
+            der = A - Y
         else:
-            dW = (np.dot(diff, cache[A_prev_key].T) + lambtha * weights[W_key]) / m
-        db = np.sum(diff, axis=1, keepdims=True) / m
-        weights[W_key] -= alpha * dW
-        weights[b_key] -= alpha * db
+            der = d_A * (1 - A ** 2)
+        if lay > 1:
+            d_A = np.dot(weights['W' + str(lay)].T, der)
+        A_prev = cache['A' + str(lay - 1)]
+        reg_term = (lambtha / m)
+        d_W = np.dot(der, A_prev.T) + reg_term * weights['W' + str(lay)]
+        d_b = np.sum(der, axis=1, keepdims=True) / m
+
+        weights['W' + str(lay)] -= alpha * d_W
+        weights['b' + str(lay)] -= alpha * d_b
     return weights
